@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+  <body>
+    <outline text="AI News" xmlUrl="https://www.theverge.com/rss/index.xml"/>
+    <outline text="Tech News" xmlUrl="https://www.wired.com/feed/rss"/>
+    <outline text="Science News" xmlUrl="https://www.technologyreview.com/feed/"/>
+  </body>
+</opml> 

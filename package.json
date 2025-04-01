@@ -1,0 +1,25 @@
+{
+  "name": "rssai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:mcp": "node init-mcp.js",
+    "dev": "concurrently \"npm run start\" \"npm run start:mcp\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "RSS Feed aggregator with AI news",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "mcp_rss": "^1.0.0",
+    "mysql2": "^3.9.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
