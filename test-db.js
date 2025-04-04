@@ -18,15 +18,34 @@ async function testConnection() {
     if (process.env.MYSQL_URL) {
       console.log('\nUsing MySQL URL connection string');
       connection = await mysql.createConnection(process.env.MYSQL_URL);
+    } else if (process.env.MYSQLHOST) {
+      // Use Railway's default MySQL variables
+      console.log('\nUsing Railway MySQL variables');
+      const dbConfig = {
+        host: process.env.MYSQLHOST,
+        port: process.env.MYSQLPORT,
+        user: process.env.MYSQLUSER,
+        password: process.env.MYSQLPASSWORD,
+        database: process.env.MYSQLDATABASE
+      };
+
+      console.log('\nDatabase Configuration:');
+      console.log('----------------------');
+      console.log(`Host: ${dbConfig.host}`);
+      console.log(`Port: ${dbConfig.port}`);
+      console.log(`User: ${dbConfig.user}`);
+      console.log(`Database: ${dbConfig.database}`);
+
+      connection = await mysql.createConnection(dbConfig);
     } else {
       // Fallback to individual connection parameters
       console.log('\nUsing individual connection parameters');
       const dbConfig = {
-        host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-        port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
-        user: process.env.DB_USERNAME || process.env.MYSQLUSER || 'root',
-        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
-        database: process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss'
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_DATABASE || 'mcp_rss'
       };
 
       console.log('\nDatabase Configuration:');
@@ -43,14 +62,14 @@ async function testConnection() {
     
     // Test database creation
     console.log('\n2. Testing database creation...');
-    const dbName = process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss';
+    const dbName = process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss';
     await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
     console.log(`✅ Database '${dbName}' is ready`);
     
     // Test connection to specific database
     console.log('\n3. Testing connection to specific database...');
     await connection.query(`USE ${dbName}`);
-    console.log(`✅ Successfully connected to database '${dbName}'`);
+    console.log(`✅ Connected to database '${dbName}'`);
     
     // Test table creation
     console.log('\n4. Testing table creation...');
@@ -59,51 +78,42 @@ async function testConnection() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         link VARCHAR(255) NOT NULL,
-        content TEXT,
+        description TEXT,
         pubDate DATETIME,
-        category VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        category VARCHAR(100),
+        source VARCHAR(100),
+        status ENUM('normal', 'favorite') DEFAULT 'normal'
       )
     `);
-    console.log('✅ Articles table is ready');
+    console.log('✅ Articles table created');
     
-    // Test inserting sample data
+    // Test data insertion
     console.log('\n5. Testing data insertion...');
     await connection.query(`
-      INSERT INTO articles (title, link, content, pubDate, category)
-      VALUES (?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE title = VALUES(title)
+      INSERT INTO articles (title, link, description, pubDate, category, source, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
       'Test Article',
       'https://example.com',
       'This is a test article',
       new Date(),
-      'test'
+      'test',
+      'test-source',
+      'normal'
     ]);
-    console.log('✅ Successfully inserted test data');
+    console.log('✅ Test data inserted');
     
-    // Test querying data
+    // Test data retrieval
     console.log('\n6. Testing data retrieval...');
-    const [rows] = await connection.query('SELECT * FROM articles LIMIT 1');
-    console.log('✅ Successfully retrieved data:');
-    console.log(rows[0]);
-    
-    // Clean up test data
-    console.log('\n7. Cleaning up test data...');
-    await connection.query('DELETE FROM articles WHERE title = ?', ['Test Article']);
-    console.log('✅ Successfully cleaned up test data');
+    const [rows] = await connection.query('SELECT * FROM articles');
+    console.log('✅ Data retrieved successfully');
+    console.log('Retrieved rows:', rows);
     
     await connection.end();
-    console.log('\n✅ All database tests passed successfully!');
+    console.log('\n✅ All database tests completed successfully');
   } catch (error) {
     console.error('\n❌ Database test failed:');
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-      sqlMessage: error.sqlMessage
-    });
+    console.error('Error details:', error);
     process.exit(1);
   }
 }

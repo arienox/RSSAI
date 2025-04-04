@@ -14,6 +14,15 @@ async function initializeDatabase() {
       if (process.env.MYSQL_URL) {
         console.log('Using MySQL URL connection string');
         connection = await mysql.createConnection(process.env.MYSQL_URL);
+      } else if (process.env.MYSQLHOST) {
+        // Use Railway's default MySQL variables
+        console.log('Using Railway MySQL variables');
+        connection = await mysql.createConnection({
+          host: process.env.MYSQLHOST,
+          port: process.env.MYSQLPORT,
+          user: process.env.MYSQLUSER,
+          password: process.env.MYSQLPASSWORD
+        });
       } else {
         // Fallback to individual connection parameters
         console.log('Using individual connection parameters');
@@ -25,7 +34,7 @@ async function initializeDatabase() {
         });
       }
 
-      await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_DATABASE || 'mcp_rss'}`);
+      await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss'}`);
       console.log('✅ Database initialized');
       await connection.end();
       return;

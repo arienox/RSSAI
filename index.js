@@ -22,6 +22,19 @@ const createPool = async (retries = 5) => {
     if (process.env.MYSQL_URL) {
       console.log('Using MySQL URL connection string');
       pool = mysql.createPool(process.env.MYSQL_URL);
+    } else if (process.env.MYSQLHOST) {
+      // Use Railway's default MySQL variables
+      console.log('Using Railway MySQL variables');
+      pool = mysql.createPool({
+        host: process.env.MYSQLHOST,
+        port: process.env.MYSQLPORT,
+        user: process.env.MYSQLUSER,
+        password: process.env.MYSQLPASSWORD,
+        database: process.env.MYSQLDATABASE,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
     } else {
       // Fallback to individual connection parameters
       console.log('Using individual connection parameters');
