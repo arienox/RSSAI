@@ -2,33 +2,51 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 async function testConnection() {
-  console.log('Testing database connection...');
-  console.log('Connection details:');
-  console.log(`Host: ${process.env.DB_HOST}`);
-  console.log(`Port: ${process.env.DB_PORT}`);
-  console.log(`User: ${process.env.DB_USERNAME}`);
-  console.log(`Database: ${process.env.DB_DATABASE}`);
+  // Log all environment variables (excluding sensitive ones)
+  console.log('\nEnvironment Variables:');
+  console.log('----------------------');
+  Object.keys(process.env).forEach(key => {
+    if (!key.includes('PASSWORD') && !key.includes('SECRET')) {
+      console.log(`${key}: ${process.env[key]}`);
+    }
+  });
+
+  // Get connection details with fallbacks
+  const dbConfig = {
+    host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
+    user: process.env.DB_USERNAME || process.env.MYSQLUSER || 'root',
+    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+    database: process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss'
+  };
+
+  console.log('\nDatabase Configuration:');
+  console.log('----------------------');
+  console.log(`Host: ${dbConfig.host}`);
+  console.log(`Port: ${dbConfig.port}`);
+  console.log(`User: ${dbConfig.user}`);
+  console.log(`Database: ${dbConfig.database}`);
   
   try {
     // Test connection without database
     console.log('\n1. Testing connection to MySQL server...');
     const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD
+      host: dbConfig.host,
+      port: dbConfig.port,
+      user: dbConfig.user,
+      password: dbConfig.password
     });
     console.log('✅ Successfully connected to MySQL server');
     
     // Test database creation
     console.log('\n2. Testing database creation...');
-    await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_DATABASE}`);
-    console.log(`✅ Database '${process.env.DB_DATABASE}' is ready`);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
+    console.log(`✅ Database '${dbConfig.database}' is ready`);
     
     // Test connection to specific database
     console.log('\n3. Testing connection to specific database...');
-    await connection.query(`USE ${process.env.DB_DATABASE}`);
-    console.log(`✅ Successfully connected to database '${process.env.DB_DATABASE}'`);
+    await connection.query(`USE ${dbConfig.database}`);
+    console.log(`✅ Successfully connected to database '${dbConfig.database}'`);
     
     // Test table creation
     console.log('\n4. Testing table creation...');
@@ -75,7 +93,13 @@ async function testConnection() {
     console.log('\n✅ All database tests passed successfully!');
   } catch (error) {
     console.error('\n❌ Database test failed:');
-    console.error(error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+      sqlMessage: error.sqlMessage
+    });
     process.exit(1);
   }
 }
