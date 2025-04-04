@@ -6,47 +6,51 @@ async function testConnection() {
   console.log('\nEnvironment Variables:');
   console.log('----------------------');
   Object.keys(process.env).forEach(key => {
-    if (!key.includes('PASSWORD') && !key.includes('SECRET')) {
+    if (!key.includes('PASSWORD') && !key.includes('SECRET') && !key.includes('URL')) {
       console.log(`${key}: ${process.env[key]}`);
     }
   });
 
-  // Get connection details with fallbacks
-  const dbConfig = {
-    host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-    port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
-    user: process.env.DB_USERNAME || process.env.MYSQLUSER || 'root',
-    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
-    database: process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss'
-  };
-
-  console.log('\nDatabase Configuration:');
-  console.log('----------------------');
-  console.log(`Host: ${dbConfig.host}`);
-  console.log(`Port: ${dbConfig.port}`);
-  console.log(`User: ${dbConfig.user}`);
-  console.log(`Database: ${dbConfig.database}`);
+  let connection;
   
   try {
-    // Test connection without database
-    console.log('\n1. Testing connection to MySQL server...');
-    const connection = await mysql.createConnection({
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      password: dbConfig.password
-    });
+    // Try to use MySQL URL if available
+    if (process.env.MYSQL_URL) {
+      console.log('\nUsing MySQL URL connection string');
+      connection = await mysql.createConnection(process.env.MYSQL_URL);
+    } else {
+      // Fallback to individual connection parameters
+      console.log('\nUsing individual connection parameters');
+      const dbConfig = {
+        host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+        port: process.env.DB_PORT || process.env.MYSQLPORT || 3306,
+        user: process.env.DB_USERNAME || process.env.MYSQLUSER || 'root',
+        password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+        database: process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss'
+      };
+
+      console.log('\nDatabase Configuration:');
+      console.log('----------------------');
+      console.log(`Host: ${dbConfig.host}`);
+      console.log(`Port: ${dbConfig.port}`);
+      console.log(`User: ${dbConfig.user}`);
+      console.log(`Database: ${dbConfig.database}`);
+
+      connection = await mysql.createConnection(dbConfig);
+    }
+    
     console.log('✅ Successfully connected to MySQL server');
     
     // Test database creation
     console.log('\n2. Testing database creation...');
-    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
-    console.log(`✅ Database '${dbConfig.database}' is ready`);
+    const dbName = process.env.DB_DATABASE || process.env.MYSQLDATABASE || 'mcp_rss';
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
+    console.log(`✅ Database '${dbName}' is ready`);
     
     // Test connection to specific database
     console.log('\n3. Testing connection to specific database...');
-    await connection.query(`USE ${dbConfig.database}`);
-    console.log(`✅ Successfully connected to database '${dbConfig.database}'`);
+    await connection.query(`USE ${dbName}`);
+    console.log(`✅ Successfully connected to database '${dbName}'`);
     
     // Test table creation
     console.log('\n4. Testing table creation...');
