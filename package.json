@@ -6,7 +6,8 @@
     "start": "node index.js",
     "start:mcp": "node init-mcp.js",
     "dev": "concurrently \"npm run start\" \"npm run start:mcp\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm install",
+    "test:db": "node test-db.js"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +22,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
