@@ -19,7 +19,7 @@ const createPool = async (retries = 5) => {
     let pool;
     
     // Try to use MySQL URL if available
-    if (process.env.MYSQL_URL) {
+    if (process.env.MYSQL_URL && process.env.MYSQL_URL.startsWith('mysql://')) {
       console.log('Using MySQL URL connection string');
       pool = mysql.createPool(process.env.MYSQL_URL);
     } else if (process.env.MYSQLHOST) {
