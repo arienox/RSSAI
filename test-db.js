@@ -18,7 +18,7 @@ async function testConnection() {
     if (process.env.MYSQL_URL && process.env.MYSQL_URL.startsWith('mysql://')) {
       console.log('\nUsing MySQL URL connection string');
       connection = await mysql.createConnection(process.env.MYSQL_URL);
-    } else if (process.env.MYSQLHOST) {
+    } else if (process.env.MYSQLHOST && !process.env.MYSQLHOST.includes('${')) {
       // Use Railway's default MySQL variables
       console.log('\nUsing Railway MySQL variables');
       const dbConfig = {
