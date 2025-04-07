@@ -21,7 +21,7 @@ async function initializeDatabase() {
           host: process.env.MYSQLHOST,
           port: process.env.MYSQLPORT,
           user: process.env.MYSQLUSER,
-          password: process.env.MYSQLPASSWORD
+          password: process.env.MYSQLPASSWORD || '' // Handle missing password
         });
       } else {
         // Fallback to individual connection parameters

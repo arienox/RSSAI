@@ -29,8 +29,8 @@ const createPool = async (retries = 5) => {
         host: process.env.MYSQLHOST,
         port: process.env.MYSQLPORT,
         user: process.env.MYSQLUSER,
-        password: process.env.MYSQLPASSWORD,
-        database: process.env.MYSQLDATABASE,
+        password: process.env.MYSQLPASSWORD || '', // Handle missing password
+        database: process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss',
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0

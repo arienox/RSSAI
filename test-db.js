@@ -25,8 +25,8 @@ async function testConnection() {
         host: process.env.MYSQLHOST,
         port: process.env.MYSQLPORT,
         user: process.env.MYSQLUSER,
-        password: process.env.MYSQLPASSWORD,
-        database: process.env.MYSQLDATABASE
+        password: process.env.MYSQLPASSWORD || '',
+        database: process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss'
       };
 
       console.log('\nDatabase Configuration:');
