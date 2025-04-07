@@ -17,16 +17,33 @@ async function testConnection() {
     // Try to use MySQL URL if available
     if (process.env.MYSQL_URL && process.env.MYSQL_URL.startsWith('mysql://')) {
       console.log('\nUsing MySQL URL connection string');
-      connection = await mysql.createConnection(process.env.MYSQL_URL);
+      // Force IPv4
+      const url = process.env.MYSQL_URL.replace('mysql://', '');
+      const [auth, hostPort] = url.split('@');
+      const [user, password] = auth.split(':');
+      const [host, portDb] = hostPort.split(':');
+      const [port, database] = portDb.split('/');
+
+      connection = await mysql.createConnection({
+        host,
+        port: parseInt(port),
+        user,
+        password,
+        database,
+        connectTimeout: 10000,
+        family: 4 // Force IPv4
+      });
     } else if (process.env.MYSQLHOST && !process.env.MYSQLHOST.includes('${{')) {
       // Use Railway's default MySQL variables
       console.log('\nUsing Railway MySQL variables');
       const dbConfig = {
         host: process.env.MYSQLHOST,
-        port: process.env.MYSQLPORT,
+        port: parseInt(process.env.MYSQLPORT) || 3306,
         user: process.env.MYSQLUSER,
         password: process.env.MYSQLPASSWORD || '',
-        database: process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss'
+        database: process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss',
+        connectTimeout: 10000,
+        family: 4 // Force IPv4
       };
 
       console.log('\nDatabase Configuration:');
@@ -42,10 +59,12 @@ async function testConnection() {
       console.log('\nUsing individual connection parameters');
       const dbConfig = {
         host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 3306,
+        port: parseInt(process.env.DB_PORT) || 3306,
         user: process.env.DB_USERNAME || 'root',
         password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_DATABASE || 'mcp_rss'
+        database: process.env.DB_DATABASE || 'mcp_rss',
+        connectTimeout: 10000,
+        family: 4 // Force IPv4
       };
 
       console.log('\nDatabase Configuration:');

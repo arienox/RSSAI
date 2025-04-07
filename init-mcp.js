@@ -13,24 +13,43 @@ async function initializeDatabase() {
       // Try to use MySQL URL if available
       if (process.env.MYSQL_URL && process.env.MYSQL_URL.startsWith('mysql://')) {
         console.log('Using MySQL URL connection string');
-        connection = await mysql.createConnection(process.env.MYSQL_URL);
+        // Force IPv4
+        const url = process.env.MYSQL_URL.replace('mysql://', '');
+        const [auth, hostPort] = url.split('@');
+        const [user, password] = auth.split(':');
+        const [host, portDb] = hostPort.split(':');
+        const [port, database] = portDb.split('/');
+
+        connection = await mysql.createConnection({
+          host,
+          port: parseInt(port),
+          user,
+          password,
+          database,
+          connectTimeout: 10000,
+          family: 4 // Force IPv4
+        });
       } else if (process.env.MYSQLHOST && !process.env.MYSQLHOST.includes('${{')) {
         // Use Railway's default MySQL variables
         console.log('Using Railway MySQL variables');
         connection = await mysql.createConnection({
           host: process.env.MYSQLHOST,
-          port: process.env.MYSQLPORT,
+          port: parseInt(process.env.MYSQLPORT) || 3306,
           user: process.env.MYSQLUSER,
-          password: process.env.MYSQLPASSWORD || '' // Handle missing password
+          password: process.env.MYSQLPASSWORD || '', // Handle missing password
+          connectTimeout: 10000,
+          family: 4 // Force IPv4
         });
       } else {
         // Fallback to individual connection parameters
         console.log('Using individual connection parameters');
         connection = await mysql.createConnection({
           host: process.env.DB_HOST,
-          port: process.env.DB_PORT,
+          port: parseInt(process.env.DB_PORT) || 3306,
           user: process.env.DB_USERNAME,
-          password: process.env.DB_PASSWORD
+          password: process.env.DB_PASSWORD,
+          connectTimeout: 10000,
+          family: 4 // Force IPv4
         });
       }
 

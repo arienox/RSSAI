@@ -21,16 +21,36 @@ const createPool = async (retries = 5) => {
     // Try to use MySQL URL if available
     if (process.env.MYSQL_URL && process.env.MYSQL_URL.startsWith('mysql://')) {
       console.log('Using MySQL URL connection string');
-      pool = mysql.createPool(process.env.MYSQL_URL);
+      // Force IPv4
+      const url = process.env.MYSQL_URL.replace('mysql://', '');
+      const [auth, hostPort] = url.split('@');
+      const [user, password] = auth.split(':');
+      const [host, portDb] = hostPort.split(':');
+      const [port, database] = portDb.split('/');
+
+      pool = mysql.createPool({
+        host,
+        port: parseInt(port),
+        user,
+        password,
+        database,
+        connectTimeout: 10000,
+        family: 4, // Force IPv4
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
     } else if (process.env.MYSQLHOST && !process.env.MYSQLHOST.includes('${{')) {
       // Use Railway's default MySQL variables
       console.log('Using Railway MySQL variables');
       pool = mysql.createPool({
         host: process.env.MYSQLHOST,
-        port: process.env.MYSQLPORT,
+        port: parseInt(process.env.MYSQLPORT) || 3306,
         user: process.env.MYSQLUSER,
         password: process.env.MYSQLPASSWORD || '', // Handle missing password
         database: process.env.MYSQLDATABASE || process.env.DB_DATABASE || 'mcp_rss',
+        connectTimeout: 10000,
+        family: 4, // Force IPv4
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0
@@ -43,7 +63,9 @@ const createPool = async (retries = 5) => {
         user: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
-        port: process.env.DB_PORT,
+        port: parseInt(process.env.DB_PORT) || 3306,
+        connectTimeout: 10000,
+        family: 4, // Force IPv4
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0
