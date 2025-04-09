@@ -19,7 +19,7 @@ export default function Error({
     <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center">
       <h1 className="text-6xl font-bold mb-4">500</h1>
       <h2 className="text-2xl font-semibold mb-6">Something went wrong</h2>
-      <p className="mb-8 text-lg">We're sorry, but we couldn't process your request at this time.</p>
+      <p className="mb-8 text-lg">We&apos;re sorry, but we couldn&apos;t process your request at this time.</p>
       <div className="flex gap-4">
         <button
           onClick={reset}
