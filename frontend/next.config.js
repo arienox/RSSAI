@@ -5,7 +5,12 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   generateEtags: true,
-  distDir: '.next'
+  distDir: '.next',
+  // Ensure static optimization
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['next/link']
+  }
 }
 
 module.exports = nextConfig
