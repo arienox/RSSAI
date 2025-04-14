@@ -1,8 +1,9 @@
 import './globals.css'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: 'RSSAI - RSS Feed Aggregator',
-  description: 'A modern RSS feed aggregator',
+export const metadata: Metadata = {
+  title: 'RSSAI',
+  description: 'RSS feed aggregator',
 }
 
 export default function RootLayout({
@@ -12,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-gray-100">{children}</body>
     </html>
   )
 } 
