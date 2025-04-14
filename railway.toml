@@ -1,9 +1,10 @@
 [build]
 builder = "DOCKERFILE"
+buildCommand = ""
 watchPatterns = ["app/**", "public/**"]
 
 [deploy]
-startCommand = "node server.js"
+startCommand = "npm start"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
