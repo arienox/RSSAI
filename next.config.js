@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: 'frontend/.next'
+  reactStrictMode: true,
+  output: 'standalone',
+  experimental: {
+    outputFileTracingRoot: process.cwd(),
+  },
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig

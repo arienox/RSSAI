@@ -1,10 +1,9 @@
 [build]
-builder = "nixpacks"
-buildCommand = "npm run build"
-startCommand = "npm start"
+builder = "DOCKERFILE"
+watchPatterns = ["app/**", "public/**"]
 
 [deploy]
-startCommand = "npm start"
+startCommand = "node server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
