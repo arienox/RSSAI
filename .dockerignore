@@ -1,11 +1,54 @@
+# Ignore everything except our app
+frontend/
+rssai-frontend/
+src/
+mcp_rss/
+
+# Git
 .git
 .github
+.gitignore
+
+# Node.js
 node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# Next.js
 .next
+out
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+
+# Build files
 .vercel
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea
 .vscode
-*.md
-.env*
-!.env.example
+*.swp
+*.swo
+
+# Specific files not needed for the frontend
+test-db.js
+init-mcp.js
+index.js
+feeds.opml
+
 .dockerignore
 Dockerfile 
