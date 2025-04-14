@@ -5,7 +5,7 @@ buildCommand = ""
 watchPatterns = ["app/**", "public/**"]
 
 [deploy]
-startCommand = "npm start"
+startCommand = "npm run start"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 numReplicas = 1
