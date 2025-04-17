@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "npm install --save-dev typescript@5.8.3 @types/react@18.3.20 @types/node@20.17.30 && next build"
+    "vercel-build": "NODE_OPTIONS='--max_old_space_size=4096' next build"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
