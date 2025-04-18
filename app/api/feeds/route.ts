@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import Parser from 'rss-parser';
 
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+const parser = new Parser();
 
 export async function GET() {
   try {
-    const response = await fetch(`${API_URL}/feeds`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
-    });
+    const { data: feeds, error } = await supabase
+      .from('feeds')
+      .select('*')
+      .order('title');
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch feeds');
+    if (error) {
+      throw error;
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json({ feeds });
   } catch (error) {
     console.error('Error fetching feeds:', error);
     return NextResponse.json(
@@ -37,20 +36,67 @@ export async function POST(request: Request) {
       );
     }
 
-    const response = await fetch(`${API_URL}/feeds`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    // Check if feed already exists
+    const { data: existingFeeds } = await supabase
+      .from('feeds')
+      .select('*')
+      .eq('url', body.url);
 
-    if (!response.ok) {
-      throw new Error('Failed to add feed');
+    if (existingFeeds && existingFeeds.length > 0) {
+      return NextResponse.json(
+        { message: 'This feed is already in your subscription list' },
+        { status: 400 }
+      );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Parse feed to get metadata
+    let feedData;
+    try {
+      feedData = await parser.parseURL(body.url);
+    } catch (error) {
+      return NextResponse.json(
+        { message: 'Could not parse feed. Please check the URL and try again.' },
+        { status: 400 }
+      );
+    }
+
+    // Insert new feed
+    const { data: newFeed, error: feedError } = await supabase
+      .from('feeds')
+      .insert([{
+        title: feedData.title || 'Untitled Feed',
+        url: body.url,
+        html_url: feedData.link || body.url,
+        category: feedData.category || 'Uncategorized'
+      }])
+      .select()
+      .single();
+
+    if (feedError) {
+      throw feedError;
+    }
+
+    // Process and store feed items
+    const articlesData = feedData.items?.slice(0, 20).map(item => ({
+      title: item.title || 'Untitled Article',
+      content: item.content || item.contentSnippet || '',
+      link: item.link || '',
+      pub_date: item.pubDate || item.isoDate || new Date().toISOString(),
+      status: 'normal',
+      feed_id: newFeed.id
+    }));
+
+    if (articlesData?.length) {
+      const { error: articlesError } = await supabase
+        .from('articles')
+        .insert(articlesData);
+
+      if (articlesError) {
+        console.error('Error inserting articles:', articlesError);
+      }
+    }
+
+    return NextResponse.json({ feed: newFeed });
   } catch (error) {
     console.error('Error adding feed:', error);
     return NextResponse.json(

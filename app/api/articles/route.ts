@@ -1,38 +1,66 @@
 import { NextResponse } from 'next/server';
-
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   try {
     // Get search parameters
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
     
-    let url = `${API_URL}/news`;
+    // Build query
+    let query = supabase
+      .from('articles')
+      .select(`
+        *,
+        feeds!inner (
+          id,
+          title,
+          url
+        )
+      `)
+      .order('pub_date', { ascending: false })
+      .range(offset, offset + limit - 1);
     
     // Add category filter if provided
     if (category) {
-      url = `${API_URL}/news/${category}`;
+      query = query.eq('feeds.category', category);
     }
     
-    // Add pagination
-    url += `?page=${page}&limit=${limit}`;
+    const { data: articles, error, count } = await query;
+
+    if (error) {
+      throw error;
+    }
     
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    // Format the response
+    const formattedArticles = articles?.map(article => {
+      const feed = article.feeds;
+      delete article.feeds;
+      
+      return {
+        ...article,
+        feed_title: feed.title,
+        feed_url: feed.url
+      };
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch articles');
-    }
+    // Get total count for pagination
+    const { count: totalCount } = await supabase
+      .from('articles')
+      .select('*', { count: 'exact', head: true });
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json({
+      articles: formattedArticles,
+      pagination: {
+        page,
+        limit,
+        total: totalCount || 0,
+        pages: Math.ceil((totalCount || 0) / limit)
+      }
+    });
   } catch (error) {
     console.error('Error fetching articles:', error);
     return NextResponse.json(

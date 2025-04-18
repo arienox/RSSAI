@@ -3,16 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-interface Article {
-  id: number;
-  title: string;
-  content: string;
-  link: string;
-  pubDate: string;
-  feedTitle: string;
-  feedUrl: string;
-}
+import { Article } from "@/lib/supabase";
 
 export default function ArticlesList() {
   const searchParams = useSearchParams();
@@ -57,7 +48,7 @@ export default function ArticlesList() {
         // Client-side sorting
         if (sort === "oldest") {
           filteredArticles.sort((a: Article, b: Article) => 
-            new Date(a.pubDate).getTime() - new Date(b.pubDate).getTime()
+            new Date(a.pub_date).getTime() - new Date(b.pub_date).getTime()
           );
         } else if (sort === "title") {
           filteredArticles.sort((a: Article, b: Article) => 
@@ -87,6 +78,7 @@ export default function ArticlesList() {
   }
   
   function truncateContent(content: string, maxLength = 150) {
+    if (!content) return '';
     if (content.length <= maxLength) return content;
     return content.slice(0, maxLength) + "...";
   }
@@ -124,12 +116,12 @@ export default function ArticlesList() {
               </h3>
               <div className="flex items-center text-sm text-muted-foreground mb-2">
                 <span className="inline-block bg-primary/10 text-primary rounded px-2 py-0.5 mr-2">
-                  {article.feedTitle}
+                  {article.feed_title}
                 </span>
-                <span>{formatDate(article.pubDate)}</span>
+                <span>{formatDate(article.pub_date)}</span>
               </div>
               <p className="text-muted-foreground mb-2">
-                {truncateContent(article.content.replace(/<[^>]*>/g, ''))}
+                {truncateContent(article.content?.replace(/<[^>]*>/g, '') || '')}
               </p>
               <a 
                 href={article.link} 

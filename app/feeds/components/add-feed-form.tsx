@@ -50,7 +50,7 @@ export default function AddFeedForm() {
         <div className="space-y-2">
           <div className="flex gap-4">
             <input
-              type="text"
+              type="url"
               placeholder="Enter RSS feed URL"
               className="flex-1 px-4 py-2 border rounded-md"
               value={feedUrl}

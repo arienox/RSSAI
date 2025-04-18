@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-interface Feed {
-  id: number;
-  title: string;
-  url: string;
-  htmlUrl: string;
-  category: string;
-}
+import { Feed } from "@/lib/supabase";
 
 export default function FeedsList() {
   const [feeds, setFeeds] = useState<Feed[]>([]);
@@ -76,12 +69,12 @@ export default function FeedsList() {
               <div>
                 <h3 className="font-medium">{feed.title}</h3>
                 <a 
-                  href={feed.htmlUrl} 
+                  href={feed.html_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:underline"
                 >
-                  {feed.htmlUrl}
+                  {feed.html_url}
                 </a>
                 {feed.category && (
                   <span className="inline-block bg-primary/10 text-primary text-xs px-2 py-1 rounded mt-1">
