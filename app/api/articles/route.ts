@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Check for supabase credentials
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const isConfigured = Boolean(supabaseUrl && supabaseKey);
+
 export async function GET(request: Request) {
   try {
+    // Return empty response if not configured
+    if (!isConfigured) {
+      console.warn('Supabase is not configured. Please set environment variables.');
+      return NextResponse.json({ 
+        articles: [], 
+        pagination: { page: 1, limit: 10, total: 0, pages: 0 } 
+      });
+    }
+
     // Get search parameters
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');

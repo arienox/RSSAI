@@ -4,8 +4,19 @@ import Parser from 'rss-parser';
 
 const parser = new Parser();
 
+// Check for supabase credentials
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const isConfigured = Boolean(supabaseUrl && supabaseKey);
+
 export async function GET() {
   try {
+    // Return empty response if not configured
+    if (!isConfigured) {
+      console.warn('Supabase is not configured. Please set environment variables.');
+      return NextResponse.json({ feeds: [] });
+    }
+
     const { data: feeds, error } = await supabase
       .from('feeds')
       .select('*')
@@ -27,6 +38,14 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    // Return error if not configured
+    if (!isConfigured) {
+      return NextResponse.json(
+        { message: 'Supabase is not configured. Please set environment variables.' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     
     if (!body.url) {

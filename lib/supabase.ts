@@ -4,11 +4,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+// Only throw error in browser environment, not during build
+const isBrowser = typeof window !== 'undefined';
+
+if (isBrowser && (!supabaseUrl || !supabaseAnonKey)) {
+  console.error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create a dummy client for build time, real client for runtime
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder-url.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
 
 export type Feed = {
   id: number;
